@@ -96,6 +96,7 @@ int OS_Sendsms(MailConfig *mail, struct tm *p, MailMsg *sms_msg)
     } else {
       snprintf(snd_msg,127, "Helo %s\r\n", "notify.ossec.net");
     }
+
     OS_SendTCP(socket,snd_msg);
     msg = OS_RecvTCP(socket, OS_SIZE_1024);
     if((msg == NULL)||(!OS_Match(VALIDMAIL, msg)))
@@ -330,7 +331,21 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
 
 
     /* Sending HELO message */
+/* XXX
     OS_SendTCP(socket,HELOMSG);
+*/
+
+    memset(snd_msg,'\0',128);
+    if(mail->heloserver) {
+      snprintf(snd_msg,127, "Helo %s\r\n", mail->heloserver);
+    } else {
+      snprintf(snd_msg,127, "Helo %s\r\n", "notify.ossec.net");
+    }
+
+    merror("TEST: %s", snd_msg);
+
+    OS_SendTCP(socket,snd_msg);
+
     msg = OS_RecvTCP(socket, OS_SIZE_1024);
     if((msg == NULL)||(!OS_Match(VALIDMAIL, msg)))
     {
