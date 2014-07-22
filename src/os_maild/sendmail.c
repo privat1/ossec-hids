@@ -331,9 +331,6 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
 
 
     /* Sending HELO message */
-/* XXX
-    OS_SendTCP(socket,HELOMSG);
-*/
 
     memset(snd_msg,'\0',128);
     if(mail->heloserver) {
@@ -341,8 +338,6 @@ int OS_Sendmail(MailConfig *mail, struct tm *p)
     } else {
       snprintf(snd_msg,127, "Helo %s\r\n", "notify.ossec.net");
     }
-
-    merror("TEST: %s", snd_msg);
 
     OS_SendTCP(socket,snd_msg);
 
