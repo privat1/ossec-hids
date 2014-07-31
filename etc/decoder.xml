@@ -2567,6 +2567,9 @@ Author and (c): Michael Starks, 2014 -->
   - 2013-05-05 13:34:24-0400 [SSHService ssh-userauth on HoneyPotTransport,29,10.10.10.10] login attempt [root/root] succeeded
 -->
 
+
+2014-07-27 23:53:24-0400 [SSHService ssh-userauth on HoneyPotTransport,19,10.10.10.10] root trying auth none
+
 <decoder name="kippo-connection">
     <prematch>\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d\p\d\d\d\d \pkippo.core.honeypot.HoneyPotSSHFactory\p </prematch>
 </decoder>
@@ -2583,7 +2586,7 @@ Author and (c): Michael Starks, 2014 -->
 
 <decoder name="kippo-connected-login">
     <parent>kippo-connected</parent>
-    <regex offset="after_parent">,\d+,(\d+.\d+.\d+.\d+)\p login attempt (\.+) (\S+)</regex>
+    <regex offset="after_parent">,\d+,(\d+.\d+.\d+.\d+)\p login attempt (\.+) (\w+)</regex>
     <order>srcip, extra_data, status</order>
 </decoder>
 
