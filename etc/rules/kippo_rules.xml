@@ -4,7 +4,7 @@
     <description>Kippo New Connection</description>
   </rule>
 
-  <rule id="52201" level="1">
+  <rule id="52201" level="3">
     <if_sid>52200</if_sid>
     <match>New connection</match>
     <description>Kippo New Connection.</description>
