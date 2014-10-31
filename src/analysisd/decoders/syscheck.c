@@ -704,7 +704,7 @@ int DB_Search(char *f_name, char *c_sum, Eventinfo *lf)
         /* New file message */
         snprintf(sdb.comment, OS_MAXSTR,
                               "New file '%.756s' "
-                              "added to the file system.", f_name);
+                              "added to the file system. (%s)", f_name, c_sum);
 
 
         /* Creating a new log message */
