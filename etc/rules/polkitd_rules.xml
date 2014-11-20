@@ -1,0 +1,24 @@
+<!--
+     Nov 20 10:28:02 localhost polkitd[909]: Terminating runaway script
+     Nov 20 10:28:02 localhost polkitd[909]: <no filename>:0: uncaught exception: Terminating runaway script
+     Nov 20 10:28:02 localhost polkitd[909]: Error evaluating authorization rules
+-->
+<group name="polkitd">
+  <rule id="300001" level="0">
+    <program_name>^polkitd$</program_name>
+    <description>polkitd grouping.</description>
+  </rule>
+
+  <rule id="300002" level="4">
+    <if_sid>300001</if_sid>
+    <match>Error evaluating authorization rules</match>
+    <description>polkitd cannot evaluate rules.</description>
+  </rule>
+
+  <rule id="300003" level="4">
+    <if_sid>300001</if_sid>
+    <match>Terminating runaway script</match>
+    <description>polkitd script is terminated.</description>
+  </rule>
+</group>
+
