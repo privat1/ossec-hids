@@ -236,6 +236,11 @@
     <description>dhclient: device not configured.</description>
   </rule>
 
+  <rule id="51537" level="3">
+    <program_name>pkg_add</program_name>
+    <match>Added </match>
+    <description>Package installed.</description>
+  </rule>
 
 
 </group> <!-- SYSLOG,LOCAL -->
