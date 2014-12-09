@@ -123,12 +123,6 @@ static int read_file(const char *file_name, int opts, OSMatch *restriction)
 
             record->scanned = 1;
 
-<<<<<<< HEAD
-        buf = (char *) OSHash_Get(syscheck.fp, file_name);
-        if(!buf)
-        {
-            char alert_msg[916 +1];	/* 912 -> 916 to accommodate a long */
-=======
             snprintf(record->alert_msg, 7, "%c%c%c%c%c%c",
                      opts & CHECK_SIZE ? '+' : '-',
                      opts & CHECK_PERM ? '+' : '-',
@@ -136,7 +130,6 @@ static int read_file(const char *file_name, int opts, OSMatch *restriction)
                      opts & CHECK_GROUP ? '+' : '-',
                      opts & CHECK_MD5SUM ? '+' : '-',
                      sha1s);
->>>>>>> f338a6780879541836ef10c2ee38d5f5a7e92719
 
             if (c_read_file(file_name, record->alert_msg, record->alert_msg + 6) < 0)
                 return (0);
@@ -151,26 +144,7 @@ static int read_file(const char *file_name, int opts, OSMatch *restriction)
                 }
             }
 
-<<<<<<< HEAD
-
-            snprintf(alert_msg, 916, "%c%c%c%c%c%c%ld:%d:%d:%d:%s:%s",
-                opts & CHECK_SIZE?'+':'-',
-                opts & CHECK_PERM?'+':'-',
-                opts & CHECK_OWNER?'+':'-',
-                opts & CHECK_GROUP?'+':'-',
-                opts & CHECK_MD5SUM?'+':'-',
-                sha1s,
-                opts & CHECK_SIZE?(long)statbuf.st_size:0,
-                opts & CHECK_PERM?(int)statbuf.st_mode:0,
-                opts & CHECK_OWNER?(int)statbuf.st_uid:0,
-                opts & CHECK_GROUP?(int)statbuf.st_gid:0,
-                opts & CHECK_MD5SUM?mf_sum:"xxx",
-                opts & CHECK_SHA1SUM?sf_sum:"xxx");
-
-            if(OSHash_Add(syscheck.fp, file_name, strdup(alert_msg)) <= 0)
-=======
             if (OSHash_Add(syscheck.fp, strdup(file_name), record) <= 0)
->>>>>>> f338a6780879541836ef10c2ee38d5f5a7e92719
             {
                 merror("%s: ERROR: Unable to add file to db: %s", ARGV0, file_name);
             }
@@ -247,13 +221,8 @@ static int read_file(const char *file_name, int opts, OSMatch *restriction)
  */
 static int read_dir(const char *dir_name, int opts, OSMatch *restriction)
 {
-<<<<<<< HEAD
-    size_t dir_size;
-
-=======
     int dir_size;
     dbrecord *record = NULL;
->>>>>>> f338a6780879541836ef10c2ee38d5f5a7e92719
     char f_name[PATH_MAX +2];
     DIR *dp;
     struct stat statbuf;

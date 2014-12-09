@@ -53,7 +53,7 @@ int send_syscheck_msg(const char *msg)
 
 /* Send a syscheck file deletion message.
  */
-int send_syscheck_deletion_msg(char *file_name)
+int send_syscheck_deletion_msg(const char *file_name)
 {
     char alert_msg[PATH_MAX + 4];
 
@@ -88,6 +88,7 @@ int send_rootcheck_msg(const char *msg)
 int mark_as_unscanned(char *key, dbrecord *record)
 {
     record->scanned = 0;
+    if(key) { }
 
     return (0);
 }

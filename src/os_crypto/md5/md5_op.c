@@ -52,7 +52,7 @@ int OS_MD5_Stream(FILE *fp, char *output)
     return(0);   
 }
 
-int OS_MD5_File_Prefilter(char *fname, char *prefilter_cmd, char *output)
+int OS_MD5_File_Prefilter(const char *fname, const char *prefilter_cmd, char *output)
 {
     FILE *fp;
 
@@ -67,7 +67,7 @@ int OS_MD5_File_Prefilter(char *fname, char *prefilter_cmd, char *output)
     return (0);
 }
 
-int OS_MD5_File(char * fname, char * output)
+int OS_MD5_File(const char * fname, char * output)
 {
     FILE *fp;
     

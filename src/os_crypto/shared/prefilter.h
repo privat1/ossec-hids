@@ -4,10 +4,10 @@
 /* Applies prefilter if any specified,
  * or open the file and return fd
  */
-FILE *prefilter(char *file_name, char *prefilter_cmd);
+FILE *prefilter(const char *file_name, const char *prefilter_cmd);
 
 /* Closes the file correctly, regarding if prefilter_cmd is set
  */
-int prefilter_close(FILE *fp, char *prefilter_cmd);
+int prefilter_close(FILE *fp, const char *prefilter_cmd);
 
 #endif

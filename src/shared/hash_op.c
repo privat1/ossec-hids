@@ -113,7 +113,7 @@ void *OSHash_Free(OSHash *self)
  */
 void OSHash_ForEach(OSHash *self, OSHash_Function fun)
 {
-    int i = 0;
+    size_t i = 0;
     OSHashNode *prev_node;
     OSHashNode *curr_node;
     OSHashNode *deleted_node;
