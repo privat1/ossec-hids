@@ -22,10 +22,10 @@
 #include <stdio.h>
 #include <string.h>
 #include "md5.h"
+#include "../shared/prefilter.h"
 
-int OS_MD5_File(const char * fname, os_md5 output)
+int OS_MD5_Stream(FILE *fp, char *output)
 {
-    FILE *fp;
     MD5_CTX ctx;
     unsigned char buf[1024 +1];
     unsigned char digest[16];
@@ -33,12 +33,6 @@ int OS_MD5_File(const char * fname, os_md5 output)
 
     memset(output,0, 33);
     buf[1024] = '\0';
-
-    fp = fopen(fname,"r");
-    if(!fp)
-    {
-        return(-1);
-    }
 
     MD5Init(&ctx);
     while((n = fread(buf, 1, sizeof(buf) -1, fp)) > 0)
@@ -55,7 +49,34 @@ int OS_MD5_File(const char * fname, os_md5 output)
         output+=2;
     }
 
-    /* Closing it */
+    return(0);   
+}
+
+int OS_MD5_File_Prefilter(char *fname, char *prefilter_cmd, char *output)
+{
+    FILE *fp;
+
+    fp = prefilter(fname, prefilter_cmd);
+    if (!fp)
+        return(-1);
+
+    OS_MD5_Stream(fp, output);
+
+    prefilter_close(fp, prefilter_cmd);
+
+    return (0);
+}
+
+int OS_MD5_File(char * fname, char * output)
+{
+    FILE *fp;
+    
+    fp = fopen(fname, "r");
+    if(!fp)
+        return(-1);
+
+    OS_MD5_Stream(fp, output);
+
     fclose(fp);
 
     return(0);

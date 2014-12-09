@@ -18,7 +18,7 @@
 #include "../md5/md5.h"
 #include "../sha1/sha.h"
 #include "headers/defs.h"
-
+#include "../shared/prefilter.h"
 
 
 int OS_MD5_SHA1_File(const char *fname, const char *prefilter_cmd, os_md5 md5output, os_sha1 sha1output)
@@ -38,27 +38,9 @@ int OS_MD5_SHA1_File(const char *fname, const char *prefilter_cmd, os_md5 md5out
     sha1output[0] = '\0';
     buf[2048 +1] = '\0';
 
-    /* Use prefilter_cmd if set */
-    if (prefilter_cmd == NULL) {
-        fp = fopen(fname,"r");
-        if(!fp)
-        {
-            return(-1);
-        }
-    } else {
-        char cmd[OS_MAXSTR];
-        size_t target_length = strlen(prefilter_cmd) + 1 + strlen(fname);
-        int res = snprintf(cmd, sizeof(cmd), "%s %s", prefilter_cmd, fname);
-        if(res < 0 || (unsigned int)res != target_length)
-        {
-            return (-1);
-        }
-        fp = popen(cmd, "r");
-        if(!fp)
-        {
-            return(-1);
-        }
-    }
+    fp = prefilter(fname, prefilter_cmd);
+    if(!fp)
+        return(-1);
 
     /* Initializing both hashes */
     MD5Init(&md5_ctx);
@@ -91,13 +73,8 @@ int OS_MD5_SHA1_File(const char *fname, const char *prefilter_cmd, os_md5 md5out
         sha1output+=2;
     }
 
-
     /* Closing it */
-    if (prefilter_cmd == NULL) {
-        fclose(fp);
-    } else {
-        pclose(fp);
-    }
+    prefilter_close(fp, prefilter_cmd);
 
     return(0);
 }

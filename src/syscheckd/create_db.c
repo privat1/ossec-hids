@@ -30,32 +30,11 @@ static int read_file(const char *dir_name, int opts, OSMatch *restriction)  __at
 static int read_dir(const char *dir_name, int opts, OSMatch *restriction) __attribute__((nonnull(1)));
 
 
-/* int check_file(char *file_name)
- * Checks if the file is already in the database.
- */
-/*static int check_file(const char *file_name)
-{
-    if(OSHash_Get(syscheck.fp, file_name))
-    {
-        return(1);
-    }
-
-    // New file
-    sleep(1);
-
-    debug2("%s: DEBUG: new file '%s'.", ARGV0, file_name);
-    return(0);
-}*/
-
-
-
 /* int read_file(char *file_name, int opts, int flag)
  * Reads and generates the integrity data of a file.
  */
 static int read_file(const char *file_name, int opts, OSMatch *restriction)
 {
-    char *buf;
-    char sha1s = '+';
     struct stat statbuf;
 
 
@@ -91,12 +70,7 @@ static int read_file(const char *file_name, int opts, OSMatch *restriction)
     }
 
 
-    /* Win32 does not have lstat */
-    #ifdef WIN32
     if(stat(file_name, &statbuf) < 0)
-    #else
-    if(lstat(file_name, &statbuf) < 0)
-    #endif
     {
         merror("%s: Error accessing '%s'.",ARGV0, file_name);
         return(-1);
@@ -130,78 +104,42 @@ static int read_file(const char *file_name, int opts, OSMatch *restriction)
     }
 
 
-    /* No S_ISLNK on windows */
-    #ifdef WIN32
     if(S_ISREG(statbuf.st_mode))
-    #else
-    if(S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode))
-    #endif
     {
-        os_md5 mf_sum;
-        os_sha1 sf_sum;
-        os_sha1 sf_sum2;
-        os_sha1 sf_sum3;
+        dbrecord *record;
+        char alert_msg[OS_MAXSTR];
+        char c_sum[256];
 
-
-        /* Cleaning sums */
-        strncpy(mf_sum, "xxx", 4);
-        strncpy(sf_sum, "xxx", 4);
-        strncpy(sf_sum2, "xxx", 4);
-        strncpy(sf_sum3, "xxx", 4);
-
-
-        /* Generating checksums. */
-        if((opts & CHECK_MD5SUM) || (opts & CHECK_SHA1SUM))
+        record = OSHash_Get(syscheck.fp, file_name);
+        if(!record)
         {
-            /* If it is a link, we need to check if dest is valid. */
-            #ifndef WIN32
-            if(S_ISLNK(statbuf.st_mode))
-            {
-                struct stat statbuf_lnk;
-                if(stat(file_name, &statbuf_lnk) == 0)
-                {
-                    if(S_ISREG(statbuf_lnk.st_mode))
-                    {
-                        if(OS_MD5_SHA1_File(file_name, syscheck.prefilter_cmd, mf_sum, sf_sum) < 0)
-                        {
-                            strncpy(mf_sum, "xxx", 4);
-                            strncpy(sf_sum, "xxx", 4);
-                        }
-                    }
-                }
-            }
-            else if(OS_MD5_SHA1_File(file_name, syscheck.prefilter_cmd, mf_sum, sf_sum) < 0)
+            char sha1s = (opts & CHECK_SHA1SUM) ? '+' : '-';
 
-            #else
-            if(OS_MD5_SHA1_File(file_name, syscheck.prefilter_cmd, mf_sum, sf_sum) < 0)
-            #endif
+            if (opts & CHECK_SEECHANGES)
+                sha1s = (opts & CHECK_SHA1SUM) ? 's' : 'n';
 
-            {
-                strncpy(mf_sum, "xxx", 4);
-                strncpy(sf_sum, "xxx", 4);
+            if (!(record = calloc(1, sizeof (dbrecord))))
+                merror("%s: ERROR: Unable to add file to db: %s", ARGV0, file_name);
 
-            }
+            record->scanned = 1;
 
-            if(opts & CHECK_SEECHANGES)
-            {
-                sha1s = 's';
-            }
-        }
-        else
-        {
-            if(opts & CHECK_SEECHANGES)
-                sha1s = 'n';
-            else
-                sha1s = '-';
-        }
-
-
+<<<<<<< HEAD
         buf = (char *) OSHash_Get(syscheck.fp, file_name);
         if(!buf)
         {
             char alert_msg[916 +1];	/* 912 -> 916 to accommodate a long */
+=======
+            snprintf(record->alert_msg, 7, "%c%c%c%c%c%c",
+                     opts & CHECK_SIZE ? '+' : '-',
+                     opts & CHECK_PERM ? '+' : '-',
+                     opts & CHECK_OWNER ? '+' : '-',
+                     opts & CHECK_GROUP ? '+' : '-',
+                     opts & CHECK_MD5SUM ? '+' : '-',
+                     sha1s);
+>>>>>>> f338a6780879541836ef10c2ee38d5f5a7e92719
 
-            alert_msg[916] = '\0';
+            if (c_read_file(file_name, record->alert_msg, record->alert_msg + 6) < 0)
+                return (0);
 
             if(opts & CHECK_SEECHANGES)
             {
@@ -213,6 +151,7 @@ static int read_file(const char *file_name, int opts, OSMatch *restriction)
                 }
             }
 
+<<<<<<< HEAD
 
             snprintf(alert_msg, 916, "%c%c%c%c%c%c%ld:%d:%d:%d:%s:%s",
                 opts & CHECK_SIZE?'+':'-',
@@ -229,45 +168,33 @@ static int read_file(const char *file_name, int opts, OSMatch *restriction)
                 opts & CHECK_SHA1SUM?sf_sum:"xxx");
 
             if(OSHash_Add(syscheck.fp, file_name, strdup(alert_msg)) <= 0)
+=======
+            if (OSHash_Add(syscheck.fp, strdup(file_name), record) <= 0)
+>>>>>>> f338a6780879541836ef10c2ee38d5f5a7e92719
             {
                 merror("%s: ERROR: Unable to add file to db: %s", ARGV0, file_name);
             }
 
-
-            /* Sending the new checksum to the analysis server */
-            alert_msg[916] = '\0';
-
-            /* changed by chris st_size int to long, 912 to 916*/
-            snprintf(alert_msg, 916, "%ld:%d:%d:%d:%s:%s %s",
-                     opts & CHECK_SIZE?(long)statbuf.st_size:0,
-                     opts & CHECK_PERM?(int)statbuf.st_mode:0,
-                     opts & CHECK_OWNER?(int)statbuf.st_uid:0,
-                     opts & CHECK_GROUP?(int)statbuf.st_gid:0,
-                     opts & CHECK_MD5SUM?mf_sum:"xxx",
-                     opts & CHECK_SHA1SUM?sf_sum:"xxx",
+            snprintf(alert_msg, OS_MAXSTR, "%s %s",
+                     record->alert_msg + 6,
                      file_name);
+
             send_syscheck_msg(alert_msg);
         }
         else
         {
-            char alert_msg[OS_MAXSTR +1];
-            char c_sum[256 +2];
-
-            c_sum[0] = '\0';
-            c_sum[256] = '\0';
-            alert_msg[0] = '\0';
-            alert_msg[OS_MAXSTR] = '\0';
+            record->scanned = 1;
 
             /* If it returns < 0, we will already have alerted. */
-            if(c_read_file(file_name, buf, c_sum) < 0)
+            if(c_read_file(file_name, record->alert_msg, c_sum) < 0)
                 return(0);
 
-            if(strcmp(c_sum, buf+6) != 0)
+            if(strcmp(c_sum, record->alert_msg + 6) != 0)
             {
                 /* Sending the new checksum to the analysis server */
                 char *fullalert = NULL;
-                alert_msg[OS_MAXSTR] = '\0';
-                if(buf[5] == 's' || buf[5] == 'n')
+
+                if(record->alert_msg[5] == 's' || record->alert_msg[5] == 'n')
                 {
                     fullalert = seechanges_addfile(file_name);
                     if(fullalert)
@@ -278,17 +205,18 @@ static int read_file(const char *file_name, int opts, OSMatch *restriction)
                     }
                     else
                     {
-                        snprintf(alert_msg, 916, "%s %s", c_sum, file_name);
+                        snprintf(alert_msg, OS_MAXSTR, "%s %s", c_sum, file_name);
                     }
                 }
                 else
                 {
-                    snprintf(alert_msg, 916, "%s %s", c_sum, file_name);
+                    snprintf(alert_msg, OS_MAXSTR, "%s %s", c_sum, file_name);
                 }
+
+                strncpy(record->alert_msg + 6, c_sum, 250);
                 send_syscheck_msg(alert_msg);
             }
         }
-
 
         /* Sleeping in here too */
         if(__counter >= (syscheck.sleep_after))
@@ -319,15 +247,22 @@ static int read_file(const char *file_name, int opts, OSMatch *restriction)
  */
 static int read_dir(const char *dir_name, int opts, OSMatch *restriction)
 {
+<<<<<<< HEAD
     size_t dir_size;
 
+=======
+    int dir_size;
+    dbrecord *record = NULL;
+>>>>>>> f338a6780879541836ef10c2ee38d5f5a7e92719
     char f_name[PATH_MAX +2];
     DIR *dp;
-
+    struct stat statbuf;
     struct dirent *entry;
 
-    f_name[PATH_MAX +1] = '\0';
+    char alert_msg[OS_MAXSTR];
+    char c_sum[256];
 
+    f_name[PATH_MAX +1] = '\0';
 
     /* Directory should be valid */
     if((dir_name == NULL)||((dir_size = strlen(dir_name)) > PATH_MAX))
@@ -336,7 +271,6 @@ static int read_dir(const char *dir_name, int opts, OSMatch *restriction)
 
         return(-1);
     }
-
 
     /* Opening the directory given */
     dp = opendir(dir_name);
@@ -385,15 +319,58 @@ static int read_dir(const char *dir_name, int opts, OSMatch *restriction)
         return(-1);
     }
 
-
-    /* Checking for real time flag. */
-    if(opts & CHECK_REALTIME)
+    if(stat(dir_name, &statbuf) < 0)
     {
-        #ifdef USEINOTIFY
-        realtime_adddir(dir_name);
-        #endif
+        merror("%s: Error accessing '%s'.", ARGV0, dir_name);
+        return(-1);
     }
 
+    record = OSHash_Get(syscheck.fp, dir_name);
+    if (!record)
+    {
+        if (!(record = calloc(1, sizeof (dbrecord))))
+            merror("%s: ERROR: Unable to add directory to db: %s", ARGV0, dir_name);
+
+        record->scanned = 1;
+
+        snprintf(record->alert_msg, 256, "-%c%c%c--0:%d:%d:%d:ddd:ddd",   /* No size & checksum comparison */
+            opts & CHECK_PERM?'+':'-',
+            opts & CHECK_OWNER?'+':'-',
+            opts & CHECK_GROUP?'+':'-',
+            opts & CHECK_PERM?(int)statbuf.st_mode:0,
+            opts & CHECK_OWNER?(int)statbuf.st_uid:0,
+            opts & CHECK_GROUP?(int)statbuf.st_gid:0);
+
+        if (OSHash_Add(syscheck.fp, strdup(dir_name), record) <= 0)
+        {
+            merror("%s: ERROR: Unable to add directory to db: %s", ARGV0, dir_name);
+        }
+
+        snprintf(alert_msg, OS_MAXSTR, "%s %s", record->alert_msg + 6, dir_name);
+        send_syscheck_msg(alert_msg);
+
+        /* Checking for real time flag. */
+        if(opts & CHECK_REALTIME)
+        {
+            #ifdef USEINOTIFY
+            realtime_adddir(dir_name);
+            #endif
+        }
+    }
+    else
+    {
+        record->scanned = 1;
+
+        c_read_file(dir_name, record->alert_msg, c_sum);
+
+        if(strcmp(c_sum, record->alert_msg + 6) != 0)
+        {
+            strncpy(record->alert_msg + 6, c_sum, 250);
+
+            snprintf(alert_msg, OS_MAXSTR, "%s %s", record->alert_msg + 6, dir_name);
+            send_syscheck_msg(alert_msg);
+        }
+    }
 
     while((entry = readdir(dp)) != NULL)
     {
@@ -424,6 +401,7 @@ static int read_dir(const char *dir_name, int opts, OSMatch *restriction)
     }
 
     closedir(dp);
+
     return(0);
 }
 
@@ -500,8 +478,8 @@ int create_db()
 
     merror("%s: INFO: Finished creating syscheck database (pre-scan "
            "completed).", ARGV0);
-    return(0);
 
+    return(0);
 }
 
 /* EOF */
