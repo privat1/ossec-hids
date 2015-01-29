@@ -464,27 +464,45 @@ int OS_SendUnix(int socket, const char *msg, int size)
 char *OS_GetHost(const char *host, unsigned int attempts)
 {
     unsigned int i = 0;
-    size_t sz;
-    char *ip;
-    struct hostent *h;
+    //size_t sz;
+    char *ip = '\0';
+    //struct hostent *h;
 
     if (host == NULL) {
         return (NULL);
     }
 
     while (i <= attempts) {
+/*
         if ((h = gethostbyname(host)) == NULL) {
             sleep(i++);
             continue;
         }
+*/
 
+	int d = 0;
+	struct addrinfo *result;
+	if ((d = getaddrinfo(host, NULL, NULL, &result)) != 0) {
+		// XXX ERROR
+
+	} else {
+		struct addrinfo *p;
+		for(p = result; p != NULL; p = p->ai_next) {
+			if(!(inet_ntop(p->ai_family, &((struct sockaddr_in *) p->ai_addr)->sin_addr, ip, sizeof(ip)))) {
+				// ERROR
+			}
+		}
+	}
+
+
+/*
         sz = strlen(inet_ntoa(*((struct in_addr *)h->h_addr))) + 1;
         if ((ip = (char *) calloc(sz, sizeof(char))) == NULL) {
             return (NULL);
         }
 
         strncpy(ip, inet_ntoa(*((struct in_addr *)h->h_addr)), sz - 1);
-
+*/
         return (ip);
     }
 
